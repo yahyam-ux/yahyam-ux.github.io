@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Cannonball 3D</title>
+		<style>
+			body {
+				font-family: verdana;
+				font-size: 15px;
+			}
+			#slider {
+				width: 200px;
+				margin: 10px;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Cannonball 3D</h1>
+		<button id="buttonRun" onclick="run()" class="button">Run</button>
+		<button onclick="restart()" class="button">Restart</button>
+		<br><br>
+		<label for="ballCount">Number of Balls: </label>
+		<input type="range" id="slider" min="1" max="10" value="1" step="1" oninput="updateBallCount()">
+		<span id="ballCountLabel">1</span>
+		<br><br>
+		<div id="container"></div>
+
+		<script src="https://unpkg.com/three@0.139.2/build/three.min.js"></script>
+		<script src="https://unpkg.com/three@0.139.2/examples/js/controls/OrbitControls.js"></script>
+		<script>
+
+			var threeScene;
+			var renderer;
+			var camera;
+			var cameraControl;
+
+			var physicsScene = {
+				gravity: new THREE.Vector3(0.0, -10.0, 0.0),
+				dt: 1.0 / 60.0,
+				worldSize: { x: 1.5, z: 2.5 },
+				paused: true,
+				objects: [],
+			};
+
+			const MIN_DISTANCE = 0.5; 
+			var numberOfBalls = 1; 
+
+			class Ball {
+				constructor(pos, radius, vel, scene) {
+					this.pos = pos;
+					this.radius = radius;
+					this.vel = vel;
+
+					var geometry = new THREE.SphereGeometry(radius, 32, 32);
+					var material = new THREE.MeshPhongMaterial({ color: 0x0000ff }); 
+					this.visMesh = new THREE.Mesh(geometry, material);
+					this.visMesh.position.copy(pos);
+					threeScene.add(this.visMesh);
+				}
+
+				simulate() {
+					this.vel.addScaledVector(physicsScene.gravity, physicsScene.dt);
+					this.pos.addScaledVector(this.vel, physicsScene.dt);
+
+					if (this.pos.x < -physicsScene.worldSize.x) {
+						this.pos.x = -physicsScene.worldSize.x;
+						this.vel.x = -this.vel.x;
+					}
+					if (this.pos.x > physicsScene.worldSize.x) {
+						this.pos.x = physicsScene.worldSize.x;
+						this.vel.x = -this.vel.x;
+					}
+					if (this.pos.z < -physicsScene.worldSize.z) {
+						this.pos.z = -physicsScene.worldSize.z;
+						this.vel.z = -this.vel.z;
+					}
+					if (this.pos.z > physicsScene.worldSize.z) {
+						this.pos.z = physicsScene.worldSize.z;
+						this.vel.z = -this.vel.z;
+					}
+					if (this.pos.y < this.radius) {
+						this.pos.y = this.radius;
+						this.vel.y = -this.vel.y;
+					}
+
+					for (let i = 0; i < physicsScene.objects.length; i++) {
+						if (this !== physicsScene.objects[i]) { 
+							let otherBall = physicsScene.objects[i];
+							let distance = this.pos.distanceTo(otherBall.pos);
+							
+							if (distance < this.radius * 2) {
+								this.vel.negate(); 
+							}
+						}
+					}
+
+					this.visMesh.position.copy(this.pos);
+				}
+			}
+
+			function initPhysics() {
+				var radius = 0.2;
+
+				for (let i = 0; i < numberOfBalls; i++) {
+					let pos = getRandomPosition(radius);
+					let vel = new THREE.Vector3(
+						Math.random() * 4 - 2, 
+						Math.random() * 7, 
+						Math.random() * 4 - 2 
+					);
+
+					physicsScene.objects.push(new Ball(pos, radius, vel));
+				}
+			}
+
+			function getRandomPosition(radius) {
+				let validPosition = false;
+				let pos;
+
+				while (!validPosition) {
+					pos = new THREE.Vector3(
+						Math.random() * 2 - 1, 
+						Math.random() + radius, 
+						Math.random() * 2 - 1 
+					);
+
+					validPosition = true;
+					for (let i = 0; i < physicsScene.objects.length; i++) {
+						let otherBall = physicsScene.objects[i];
+						let distance = pos.distanceTo(otherBall.pos);
+
+						if (distance < radius * 2) {
+							validPosition = false;
+							break;
+						}
+					}
+				}
+				return pos;
+			}
+
+			function simulate() {
+				if (physicsScene.paused) return;
+				for (var i = 0; i < physicsScene.objects.length; i++) physicsScene.objects[i].simulate();
+			}
+
+			function initThreeScene() {
+				threeScene = new THREE.Scene();
+
+				threeScene.add(new THREE.AmbientLight(0x505050));
+				threeScene.fog = new THREE.Fog(0x000000, 0, 15);
+				
+				var dirLight = new THREE.DirectionalLight(0xFFFFFF, 2);
+
+				var dirLight = new THREE.DirectionalLight(0x55505a, 1);
+				dirLight.position.set(0, 3, 0);
+				dirLight.castShadow = true;
+				dirLight.shadow.camera.near = 1;
+				dirLight.shadow.camera.far = 10;
+				dirLight.shadow.camera.right = 1;
+				dirLight.shadow.camera.left = -1;
+				dirLight.shadow.camera.top = 1;
+				dirLight.shadow.camera.bottom = -1;
+				dirLight.shadow.mapSize.width = 1024;
+				dirLight.shadow.mapSize.height = 1024;
+				threeScene.add(dirLight);
+
+				var ground = new THREE.Mesh(
+					new THREE.PlaneBufferGeometry(20, 20, 1, 1),
+					new THREE.MeshPhongMaterial({ color: 0xa0adaf, shininess: 150 })
+				);
+
+				ground.rotation.x = -Math.PI / 2;
+				ground.receiveShadow = true;
+				threeScene.add(ground);
+
+				var helper = new THREE.GridHelper(20, 20);
+				helper.material.opacity = 1.0;
+				helper.material.transparent = true;
+				helper.position.set(0, 0.002, 0);
+				threeScene.add(helper);
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.shadowMap.enabled = true;
+				renderer.setPixelRatio(window.devicePixelRatio);
+				renderer.setSize(0.8 * window.innerWidth, 0.8 * window.innerHeight);
+				window.addEventListener('resize', onWindowResize, false);
+				container.appendChild(renderer.domElement);
+
+				camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
+				camera.position.set(0, 1, 4);
+				camera.updateMatrixWorld();
+
+				threeScene.add(camera);
+
+				cameraControl = new THREE.OrbitControls(camera, renderer.domElement);
+				cameraControl.zoomSpeed = 2.0;
+				cameraControl.panSpeed = 0.4;
+			}
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+			}
+
+			function run() {
+				var button = document.getElementById('buttonRun');
+				if (physicsScene.paused) button.innerHTML = "Stop";
+				else button.innerHTML = "Run";
+				physicsScene.paused = !physicsScene.paused;
+			}
+
+			function restart() {
+				physicsScene.objects.forEach(ball => {
+					threeScene.remove(ball.visMesh);
+				});
+				physicsScene.objects = [];
+
+				initPhysics();
+			}
+
+			function updateBallCount() {
+				let sliderValue = document.getElementById("slider").value;
+				document.getElementById("ballCountLabel").innerText = sliderValue;
+				numberOfBalls = parseInt(sliderValue);
+
+				restart();
+			}
+
+			function update() {
+				simulate();
+				renderer.render(threeScene, camera);
+				cameraControl.update();
+				requestAnimationFrame(update);
+			}
+
+			initThreeScene();
+			initPhysics();
+			update();
+		</script>
+	</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Projects</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif, sans-serif;
+        }
+        div {
+            margin-bottom: 50px;
+            text-align: center;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            background-color: #444;
+            padding: 0.5rem;
+        }
+        nav a {
+            color: white;
+            margin: 0 1rem;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        section {
+            padding: 2rem;
+            border-bottom: 1px solid #ccc;
+        }
+        .project {
+            margin-bottom: 2rem;
+        }
+        .project h2 {
+            margin-top: 0;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Projects</h1>
+        <p>Showcasing my work and achievements</p>
+    </header>
+
+    <main>
+        <section id="porsche" class="project">
+            <h2>Porsche Model</h2>
+            <p>Fully modeled Porsche 911 in Fusion 360.</p>
+        
+            <iframe src="https://a360.co/4gpLCvY" loading="lazy" frameborder="0" allowfullscreen></iframe>
+            
+            <h3 style="text-align: center;">Rendered Image</h3>
+
+            <div>
+                <img src="iamges/Porsche_2024-Dec-25_11-43-34PM-000_CustomizedView6909596341_jpg.jpg" 
+                     alt="Rendered Porsche" 
+                     style="width: 60%; height: 400px;">
+            </div>
+            
+            <p style="text-align: center; margin-top: 20px;">
+                The Porsche 911 was designed entirely in Fusion 360 using advanced surface modeling techniques. I focused on replicating accurate proportions and details based on real-world references, followed by high-quality rendering to showcase its aesthetics. I followed a 4 part tutorial to model this car and learned about mesh style for creating 3D objects. https://www.youtube.com/watch?v=VyBrucQQg1s. 
+            </p>
+        </section>
+        
+        <section id="engine" class="project">
+            <h2>Engine Model</h2>
+            <p>This engine was entirely modeled by me, showcasing my ability to design complex mechanical parts.</p>
+            <iframe src="https://a360.co/3Pc0WAp" loading="lazy" frameborder="0" allowfullscreen></iframe>
+            <p style="text-align: center; margin-top: 20px;">
+                This engine model was created using precise CAD techniques in Fusion 360 to demonstrate its realistic mechanical structure.
+            </p>
+        </section>
+
+        <section id="spring" class="project">
+            <h2>Spring Model</h2>
+            <p>This spring was modeled focusing on structural accuracy and spring dynamics.</p>
+            <iframe src="https://a360.co/3ZVF1T5" loading="lazy" frameborder="0" allowfullscreen></iframe>
+            <p style="text-align: center; margin-top: 20px;">
+                This model highlights my proficiency in creating mechanical components with detailed precision and proper scaling.
+            </p>
+        </section>
+
+        <section id="simulation" class="project">
+            <h2>Physics Simulation</h2>
+            <p>This simulation demonstrates my understanding of physics and coding. I added my own details to enhance the provided base code.</p>
+            <iframe src="cannon4d.html" title="Physics Simulation" loading="lazy"></iframe>
+        </section>
+    </main>
+
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+</body>
+</html>
